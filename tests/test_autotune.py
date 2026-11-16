@@ -123,6 +123,9 @@ def test_batched_route_on_scan_model():
     """LinearRecurrence lowers to the batched carrier — the
     ``batched`` candidate reuses it and ``generic`` re-lowers the
     same term serially."""
+    # kit_carriers is an optional lazy dep of kit_torch — the batched
+    # carrier route only exists when it is importable.
+    pytest.importorskip("kit_carriers")
     from kit_torch.models import LinearRecurrence
 
     torch.manual_seed(0)
