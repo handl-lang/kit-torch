@@ -245,6 +245,23 @@ def test_rebound_param_recapture_success_swaps_graph(
     assert mod.is_graph_captured
 
 
+def test_recapture_declined_when_cuda_unavailable(
+    mod: _DummyExecutor, monkeypatch
+):
+    """``capture_cuda_graph`` no-oping (no CUDA) is a declined
+    recapture — same eager-forever outcome as a raise, with the
+    distinct recorded reason."""
+    x = _x()
+    sentinel = torch.full((1,), 3.0)
+    _arm(mod, x, sentinel)
+    mod.eval_mod._param_values["v"] = torch.randn(3)
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+
+    assert mod._graph_replay((x.clone(),)) is None
+    assert mod._graph_eager_forever
+    assert "recapture declined" in (mod._recapture_error or "")
+
+
 def test_recapture_exception_marks_eager_forever(
     mod: _DummyExecutor, monkeypatch
 ):
