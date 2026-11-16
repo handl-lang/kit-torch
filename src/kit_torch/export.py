@@ -261,7 +261,12 @@ def _mlopt_modules(
         # layer (both spellings — pre-split artifacts named the
         # packages ``mlopt_*``).
         if not cls.__module__.startswith(
-            ("kit_torch", "kit_carriers", "mlopt_torch", "mlopt_carriers")
+            (
+                "kit_torch",
+                "kit_carriers",
+                "mlopt_torch",
+                "mlopt_carriers",
+            )
         ):
             continue
         out[name] = {
