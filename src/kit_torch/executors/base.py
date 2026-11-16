@@ -34,6 +34,8 @@ from typing import Any, Self
 import torch
 from mlopt_core.term import Op
 
+from kit_torch.device import storage_fingerprint
+
 __all__ = ["BatchedExecutorBase", "level_schedule", "slot_gathers"]
 
 
@@ -117,6 +119,14 @@ def slot_gathers(
     return gathers
 
 
+def _tensor_storage(t: torch.Tensor) -> Any:
+    """Untyped-storage identity for one tensor (fingerprint leaf)."""
+    try:
+        return t.untyped_storage()
+    except Exception:  # pragma: no cover — exotic tensor types
+        return t
+
+
 class BatchedExecutorBase:
     """Mixin holding the batched executors' shared machinery.
 
@@ -142,16 +152,29 @@ class BatchedExecutorBase:
     _graph_inputs: list[torch.Tensor]
     _graph_out: torch.Tensor | None
     _forward_impl: Callable[..., torch.Tensor]
+    _param_snap: tuple | None
+    _graph_warmup: int
+    _graph_eager_forever: bool
+    _recapture_count: int
+    _recapture_error: str | None
 
     def _init_graph_state(self) -> None:
         """(Re)set the CUDA-graph capture fields.
 
         Concrete ``__init__``s call this once ``eval_mod``/``_plan``
-        exist; :meth:`drop_cuda_graph` reuses it.
+        exist; :meth:`drop_cuda_graph` reuses it.  Also resets the
+        storage-safety state — a dropped graph carries no fingerprint,
+        and a fresh :meth:`capture_cuda_graph` starts with a clean
+        eager-forever/recapture record.
         """
         self._graph = None
         self._graph_inputs = []
         self._graph_out = None
+        self._param_snap = None
+        self._graph_warmup = 3
+        self._graph_eager_forever = False
+        self._recapture_count = 0
+        self._recapture_error = None
 
     @property
     def is_graph_captured(self) -> bool:
@@ -192,9 +215,12 @@ class BatchedExecutorBase:
         Caveats (standard CUDA-graph rules): inputs must be CUDA
         tensors; calls with a different shape/dtype/device fall back
         to the eager path; parameters are baked in by pointer —
-        in-place updates are replayed, replacing a parameter is not;
-        the returned tensor is the static output buffer, overwritten
-        by the next call (clone it to keep it).
+        in-place updates are replayed, replacing a parameter is not
+        (a rebind is caught by the storage fingerprint and triggers a
+        recapture, or an honest eager-forever fallback — see
+        :meth:`_graph_replay`); the returned tensor is the static
+        output buffer, overwritten by the next call (clone it to keep
+        it).
         """
         if self._plan is None or not torch.cuda.is_available():
             return self
@@ -212,16 +238,180 @@ class BatchedExecutorBase:
         g = torch.cuda.CUDAGraph()
         with torch.cuda.graph(g):
             out = self._forward_impl(*static_ins)
+        # Storage snapshot taken AFTER warmup+record so it covers the
+        # fully-populated _const_cache; assigned atomically with the
+        # graph so a fingerprint failure can never leave a graph
+        # replaying un-fingerprinted storages (the exception
+        # propagates — CudaGraphRunner records it as
+        # ``cuda_graph_failure`` and delivery continues eager).
+        snap = self._storage_snapshot()
         self._graph, self._graph_inputs, self._graph_out = (
             g,
             static_ins,
             out,
         )
+        self._param_snap = snap
+        self._graph_warmup = warmup
+        self._graph_eager_forever = False
+        self._recapture_count = 0
+        self._recapture_error = None
         return self
 
     def drop_cuda_graph(self) -> None:
         """Release the captured graph, returning to eager execution."""
         self._init_graph_state()
+
+    # -- storage safety -----------------------------------------------
+
+    def _storage_snapshot(self) -> tuple:
+        """Untyped-storage identity over everything the graph reads.
+
+        A captured graph holds raw pointers to the storages its
+        kernels touched — the wrapped parameters above all — and does
+        NOT keep them alive: ``IRModule._park_params`` (the
+        low-memory ``verify_module`` dance) drops the live weight
+        tables to CPU, freeing exactly those storages, and a sibling
+        forward can then reuse the memory so replay reads garbage
+        (the I-002 CUDA poison).  The snapshot mirrors
+        ``_GraphReplayModule._param_snap`` in ``kit_cuda.runners``:
+
+        * ``storage_fingerprint(self)`` — registered
+          parameters/buffers (recursing into ``eval_mod``) plus this
+          module's ``_param_map`` view (the property delegates to
+          ``eval_mod._param_map``);
+        * ``storage_fingerprint(self.eval_mod)`` — the embedded
+          ``IRModule``'s ``_param_values`` table, which holds tensors
+          that never registered as Parameters (``_align_to`` still
+          migrates them);
+        * ``_const_cache`` values — the index/bottom-row tensors
+          ``_forward_impl`` bakes into the recording; a device/dtype
+          realignment recreates them, and the graph must not keep
+          reading the stale storage.
+
+        Holding the untyped storages keeps the captured memory alive
+        (no free-then-realloc ABA); comparing identities before every
+        replay catches every real rebind — ``.to()``, ``_align_to``,
+        ``load_state_dict``-adjacent moves — since none of them
+        preserves storage identity.
+        """
+        out: list[Any] = []
+        out.extend(storage_fingerprint(self))
+        ev = getattr(self, "eval_mod", None)
+        if ev is not None and ev is not self:
+            out.extend(storage_fingerprint(ev))
+        cache = getattr(self, "_const_cache", None)
+        if isinstance(cache, dict):
+            out.extend(
+                _tensor_storage(t)
+                for t in cache.values()
+                if isinstance(t, torch.Tensor)
+            )
+        return tuple(out)
+
+    def _params_stable(self) -> bool:
+        """Return True while the captured storages ARE the live ones.
+
+        ``_param_snap is None`` means the graph slot was populated
+        without :meth:`capture_cuda_graph` (tests inject ``_graph``
+        directly) — there is no fingerprint to check against, so the
+        historical replay-the-slot behaviour stands.  Every graph the
+        capture path itself records carries a snapshot.
+        """
+        snap = self._param_snap
+        if snap is None:
+            return True
+        cur = self._storage_snapshot()
+        return len(cur) == len(snap) and all(
+            a is b for a, b in zip(cur, snap, strict=True)
+        )
+
+    def _recapture(self, xs: tuple[torch.Tensor, ...]) -> bool:
+        """Re-record against the current storages; ``False`` on failure.
+
+        Mirrors ``_GraphReplayModule._recapture`` /
+        ``_DeviceGraphModule``'s drop-and-recapture: drop the stale
+        graph FIRST (a failed capture must never leave the old
+        pointers replayable), then run the same
+        :meth:`capture_cuda_graph` recipe on the caller's inputs —
+        which also re-snapshots the now-current storages.  A failed
+        or declined recapture marks the module eager-forever (the
+        reason recorded on ``_recapture_error``) rather than
+        retrying — and never replaying — a stale graph.
+        """
+        count = self._recapture_count
+        warmup = self._graph_warmup
+        try:
+            self.drop_cuda_graph()
+            self.capture_cuda_graph(*xs, warmup=warmup)
+        except Exception as exc:
+            self._graph_eager_forever = True
+            self._recapture_error = f"{type(exc).__name__}: {exc}"
+            return False
+        if self._graph is None:
+            # capture_cuda_graph declined (plan gone / CUDA vanished)
+            # — same honest eager-forever outcome as a raise.
+            self._graph_eager_forever = True
+            self._recapture_error = (
+                "recapture declined: capture_cuda_graph did not "
+                "record a graph"
+            )
+            return False
+        self._recapture_count = count + 1
+        self._recapture_error = None
+        return True
+
+    def _graph_replay_ready(self, xs: tuple[torch.Tensor, ...]) -> bool:
+        """Return True when the captured graph may safely replay ``xs``.
+
+        The per-call storage check: eager-forever short-circuits,
+        a stable fingerprint replays, and a mismatch attempts ONE
+        recapture against the current storages — ``False`` means the
+        caller must run ``_forward_impl`` instead (never a stale
+        replay).
+        """
+        if self._graph_eager_forever:
+            return False
+        if self._params_stable():
+            return True
+        return self._recapture(xs)
+
+    def _graph_replay(self, xs: tuple[torch.Tensor, ...]) -> Any:
+        """Replay the captured graph for ``xs``; ``None`` → run eager.
+
+        Single-sources the forward fast-path the concrete executors
+        used to inline: signature match (arity + shape/dtype/device
+        against the static input buffers), the storage-safety gate
+        (:meth:`_graph_replay_ready` — which may recapture, swapping
+        ``_graph``/``_graph_inputs``/``_graph_out``), input copy, one
+        ``replay()``, and the static output buffer.  ``None`` means
+        "not served by the graph" — signature mismatch, no capture,
+        or eager-forever — and the caller falls back to
+        ``_forward_impl`` exactly as before.  The returned tensor is
+        the static output buffer, overwritten by the next replay
+        (clone it to keep it).
+        """
+        g = self._graph
+        if g is None or len(xs) != len(self._graph_inputs):
+            return None
+        if not all(
+            t.shape == b.shape
+            and t.dtype == b.dtype
+            and t.device == b.device
+            for t, b in zip(xs, self._graph_inputs, strict=True)
+        ):
+            return None
+        if not self._graph_replay_ready(xs):
+            return None
+        # A successful recapture swapped the graph AND the static
+        # buffers — re-read both rather than replaying the stale
+        # pre-check objects.
+        g = self._graph
+        if g is None:  # pragma: no cover — ready implies captured
+            return None
+        for buf, t in zip(self._graph_inputs, xs, strict=True):
+            buf.copy_(t, non_blocking=True)
+        g.replay()
+        return self._graph_out
 
     # -- eval plumbing ------------------------------------------------
 
