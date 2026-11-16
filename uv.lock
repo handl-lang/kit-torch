@@ -410,9 +410,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mlopt-core", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-core&tag=v0.1.9" },
-    { name = "mlopt-dtypes", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-dtypes&tag=v0.1.9" },
-    { name = "mlopt-orchestrator", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-orchestrator&tag=v0.1.9" },
+    { name = "mlopt-core", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-core&tag=v0.1.12" },
+    { name = "mlopt-dtypes", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-dtypes&tag=v0.1.12" },
+    { name = "mlopt-orchestrator", git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-orchestrator&tag=v0.1.12" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "torch", specifier = ">=2.0" },
 ]
@@ -578,17 +578,17 @@ wheels = [
 [[package]]
 name = "mlopt-core"
 version = "0.1.0.dev0"
-source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-core&tag=v0.1.9#414ec4e89401587cadf96691a9059ef8e298308e" }
+source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-core&tag=v0.1.12#d67d1fc8d17f6698baa2ba857685ea796db95201" }
 
 [[package]]
 name = "mlopt-dtypes"
 version = "0.1.0.dev0"
-source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-dtypes&tag=v0.1.9#414ec4e89401587cadf96691a9059ef8e298308e" }
+source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-dtypes&tag=v0.1.12#d67d1fc8d17f6698baa2ba857685ea796db95201" }
 
 [[package]]
 name = "mlopt-orchestrator"
 version = "0.1.0.dev0"
-source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-orchestrator&tag=v0.1.9#414ec4e89401587cadf96691a9059ef8e298308e" }
+source = { git = "https://github.com/handl-lang/eqsat.git?subdirectory=packages%2Fmlopt-orchestrator&tag=v0.1.12#d67d1fc8d17f6698baa2ba857685ea796db95201" }
 dependencies = [
     { name = "mlopt-core" },
 ]
