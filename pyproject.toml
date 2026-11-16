@@ -108,11 +108,13 @@ omit = ["*/tests/*"]
 
 [tool.coverage.report]
 # Floor set at measurement on the carved package-bound suite (P3 Step
-# D-1e) — the e2e/law/cross-stack tests stayed in graphopt and reach
-# this package through the git dep, so the in-repo number is well
-# below the old monorepo wall.  Tighten, never lower (ratchet
+# D-1e) — measured 76% total on the 3,146-test suite
+# (2026-11-16); the e2e/law/cross-stack tests stayed in graphopt and
+# reach this package through the git dep (executors/base, runners,
+# regime, region_fuse and models/hybrid sit at 0% in-repo — their
+# exercise is the cross-stack side).  Tighten, never lower (ratchet
 # convention, same as kit-onnx/kit-carriers/kit-cuda).
-fail_under = 0
+fail_under = 76
 show_missing = true
 exclude_also = [
     "if __name__ == ['\"]__main__['\"]:",
