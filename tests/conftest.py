@@ -1,0 +1,93 @@
+"""Shared pytest support for mlopt.
+
+The ``requires_cuda`` marker marks tests that allocate CUDA tensors.
+Such tests are skipped at setup — cleanly, not with a mid-test failure —
+when
+
+* ``torch.cuda.is_available()`` is false, or
+* the device probes unusable: on a shared / oversubscribed card
+  ``is_available()`` can still be true while the first real allocation
+  raises ``torch.cuda.OutOfMemoryError`` (or a wedged driver raises at
+  init).
+
+The probe runs per test setup (not once per session) so a card that
+fills up *between* tests still skips rather than flakes.  Probing is a
+~32 MiB alloc + a kernel launch + sync — milliseconds.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+# --- persistent Inductor cache -------------------------------------
+# torch.compile tests recompile their kernels from scratch on every run
+# unless Inductor's cache is pinned somewhere durable.  Pin it into the
+# repo's local artifact cache (the same convention as
+# ``kit_discovery.cache_dir()``: $MLOPT_CACHE_DIR, then
+# $XDG_CACHE_HOME, then ~/.cache) so repeat runs reuse compiled kernels.
+# Set before ``import torch`` so nothing reads the default first.
+if not os.environ.get("TORCHINDUCTOR_CACHE_DIR"):
+    _xdg = os.environ.get("XDG_CACHE_HOME")
+    _base = Path(_xdg) if _xdg else Path.home() / ".cache"
+    _inductor = Path(os.environ.get("MLOPT_CACHE_DIR", _base / "mlopt")) / "inductor"
+    _inductor.mkdir(parents=True, exist_ok=True)
+    os.environ["TORCHINDUCTOR_CACHE_DIR"] = str(_inductor)
+
+import pytest
+import torch
+
+# Several tests exercise the concrete-eval backend without importing
+# ``kit_torch.torch_bridge`` themselves — under the full suite a
+# sibling test module's top-level import registers it at collection
+# time, but a subset run would see "no concrete-eval backend
+# registered".  Register eagerly here so subsets behave like the
+# full suite.
+import kit_torch.torch_bridge  # noqa: F401
+
+# --- mutmut sandbox ------------------------------------------------
+# uv's PEP-660 editable install registers a single ``__editable__*``
+# MetaPathFinder mapping every workspace package back to the real
+# ``packages/*/src``.  It runs ahead of path-based resolution, so inside
+# the flat sandbox mutmut builds (``.mutmut-sandbox/``, see
+# scripts/mutmut.sh) it would shadow the mutated copies and no mutant
+# would ever be imported (mutmut then reports "no test case for any
+# mutant").  When running from that sandbox, drop the finder so the
+# ``mutants/`` copies win.  It is a no-op for normal runs.
+if Path.cwd().name == "mutants":
+    sys.meta_path[:] = [
+        f
+        for f in sys.meta_path
+        if "editable" not in getattr(f, "__module__", "")
+    ]
+
+_PROBE_NUMEL = 8 * 1024 * 1024  # float32 zeros → 32 MiB
+
+
+def _cuda_skip_reason() -> str | None:
+    """``None`` when CUDA is genuinely usable; a skip reason otherwise."""
+    if not torch.cuda.is_available():
+        return "requires_cuda: no CUDA device"
+    try:
+        x = torch.zeros(_PROBE_NUMEL, device="cuda")
+        float(x.sum())  # launch a kernel, not just an alloc
+        torch.cuda.synchronize()
+        del x
+    except Exception as e:
+        return (
+            f"requires_cuda: CUDA present but unusable "
+            f"({type(e).__name__}: {e})"
+        )
+    return None
+
+
+def cuda_usable() -> bool:
+    """Imperative form for tests that want to branch, not skip."""
+    return _cuda_skip_reason() is None
+
+
+def pytest_runtest_setup(item):
+    if item.get_closest_marker("requires_cuda") is None:
+        return
+    reason = _cuda_skip_reason()
+    if reason is not None:
+        pytest.skip(reason)

@@ -1,0 +1,30 @@
+# CI — scoped mirror of the sibling split repos' gates (gamekit/eqsat):
+# lint, format, typecheck, then the suite.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: uv sync (dev group)
+        run: uv sync --group dev
+
+      - name: ruff check
+        run: .venv/bin/ruff check src
+
+      - name: ruff format --check
+        run: .venv/bin/ruff format --check src
+
+      - name: ty check
+        run: .venv/bin/ty check
+
+      - name: pytest
+        run: .venv/bin/python -m pytest tests/ -q
