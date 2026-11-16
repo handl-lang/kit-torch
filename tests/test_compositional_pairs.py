@@ -64,6 +64,47 @@ class _ResidualStack(nn.Module):
         return x
 
 
+def test_joint_default_is_joint_safe():
+    """The joint pass's default preset keeps the structural layout
+    laws (the measured transpose wins) and drops the pointwise
+    ``transpose_push_*``/``transpose_pull_*`` family plus the
+    pairing-subsumed folds — the families measured as pure
+    check-time cost on captured joint specs (host report
+    ``joint_safe_preset.md``)."""
+    from mlopt_core import laws as core_laws
+
+    members = O._JOINT_DEFAULT.rules
+    assert not any(core_laws.tags.SUBSUMED in r.tags for r in members)
+    tp = {
+        r.name
+        for r in core_laws.WITH_LAYOUT.rules
+        if core_laws.tags.LAYOUT in r.tags
+        and r.name.startswith(("transpose_push_", "transpose_pull_"))
+    }
+    assert tp  # the family exists — the exclusion is real
+    names = {r.name for r in members}
+    assert not (names & tp)
+    struct = {
+        r.name
+        for r in core_laws.WITH_LAYOUT.rules
+        if core_laws.tags.LAYOUT in r.tags
+    } - tp
+    assert struct and struct <= names
+
+
+def test_joint_rules_widening_scope():
+    """``_joint_rules`` widens only the pipeline default; an explicit
+    caller-chosen set — including a ``WITH_LAYOUT``-derived one for
+    the full layout surface — passes through untouched."""
+    from mlopt_core import laws as core_laws
+
+    assert O._joint_rules(None) is O._JOINT_DEFAULT
+    full = core_laws.WITH_LAYOUT - core_laws.WITH_LAYOUT.tagged(
+        core_laws.tags.SUBSUMED
+    )
+    assert O._joint_rules(full) is full
+
+
 def test_cross_pair_chain_grafts_jointly():
     """Adjacent DeepParallel blocks fuse pairwise: A's output projection
     composes with B's input projections — ``(x@W1+x@W2)@W3`` then the

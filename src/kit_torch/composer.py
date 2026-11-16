@@ -38,12 +38,42 @@ from kit_torch.report import verify_module
 
 __all__ = ["TorchComposer", "param_report"]
 
+#: Name prefixes of the *pointwise* half of the layout pack — the
+#: ``transpose_push_*`` / ``transpose_pull_*`` laws that commute a
+#: transpose through elementwise ops.  The other half (involution,
+#: product-transpose, ``linear`` ≡ NT-GEMM) is kept: it carries every
+#: layout win observed in joint search.
+_LAYOUT_POINTWISE_PREFIXES = ("transpose_push_", "transpose_pull_")
+
 #: The joint pass's widened set when the caller used the pipeline
 #: default — the historical ``ruleset="all"`` → ``"all+layout"``
-#: upgrade: the full core surface plus the layout migration laws,
-#: minus the pairing-subsumed folds.
-_JOINT_DEFAULT = _core_laws.WITH_LAYOUT - _core_laws.WITH_LAYOUT.tagged(
-    _core_laws.tags.SUBSUMED
+#: upgrade minus two measured pure-cost families: the pairing-subsumed
+#: folds (the non-local pairing pass owns those) and the pointwise
+#: layout laws.  Measured on six captured joint specs
+#: (host ``project/reports/joint_safe_preset.md``): the 64
+#: ``transpose_push_*``/``transpose_pull_*`` laws never changed the
+#: extracted term but grew the e-graph up to 43x and wall time up to
+#: 32x; the 13 structural layout laws preserved every observed win —
+#: including a 3x cost win on transpose-bearing micro-models that the
+#: layout-free set misses entirely.  The full
+#: ``WITH_LAYOUT - SUBSUMED`` surface remains available opt-in by
+#: passing an explicit :class:`~mlopt_core.laws.RuleSet` as ``rules``.
+_JOINT_DEFAULT = _core_laws.RuleSet(
+    "joint_default",
+    tuple(
+        r
+        for r in _core_laws.WITH_LAYOUT.rules
+        if _core_laws.tags.SUBSUMED not in r.tags
+        and not (
+            _core_laws.tags.LAYOUT in r.tags
+            and r.name.startswith(_LAYOUT_POINTWISE_PREFIXES)
+        )
+    ),
+    description=(
+        "the joint pair pass's default — WITH_LAYOUT minus "
+        "pairing-subsumed folds and the pointwise layout laws "
+        "(measured pure amplifier; see composer._JOINT_DEFAULT)"
+    ),
 )
 
 
@@ -51,9 +81,11 @@ def _joint_rules(rules: Any) -> Any:
     """Return the rule set the joint pair pass saturates with.
 
     ``None`` — or a set equal to the pipeline's composed default —
-    widens to the layout-inclusive surface (the historical
-    ``"all"`` → ``"all+layout"`` upgrade); a caller-chosen
-    :class:`~mlopt_core.laws.RuleSet` is used as-is.
+    widens to the joint-safe surface (the historical ``"all"`` →
+    ``"all+layout"`` upgrade minus the measured-cost families); a
+    caller-chosen :class:`~mlopt_core.laws.RuleSet` — including a
+    ``WITH_LAYOUT``-derived set for the full layout surface — is used
+    as-is.
     """
     from mlopt_orchestrator.optimize import (
         _resolve_rules,
