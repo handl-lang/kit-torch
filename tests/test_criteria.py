@@ -17,14 +17,13 @@ from mlopt_core.cost import (
 )
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import Op, Param, TensorType, Var
+from mlopt_orchestrator import Optimizer
 from mlopt_orchestrator.criteria import (
     DepthCriterion,
     FlopsCriterion,
     LatencyCriterion,
     MemoryCriterion,
 )
-from mlopt_orchestrator import Optimizer
-
 
 from kit_torch.backend import TorchBackend
 

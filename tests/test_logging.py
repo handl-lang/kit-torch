@@ -15,9 +15,10 @@ import ast
 import logging
 from pathlib import Path
 
-from kit_torch.calibrate import calibrate
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import Op, Param, TensorType, Var
+
+from kit_torch.calibrate import calibrate
 
 _REPO = Path(__file__).resolve().parents[1]
 

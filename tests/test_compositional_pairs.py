@@ -9,15 +9,14 @@ AND its delivered FLOPs beat the sum of the separate results; every
 other outcome is a silent decline recorded in ``stats["cross_pairs"]``.
 """
 
-import kit_torch.composer as C
-import kit_torch.composer as O
 import torch
 import torch.nn as nn
-from kit_torch.models import DeepParallel, ParallelLinear
-
 from mlopt_orchestrator import Compositional, Optimizer
 
+import kit_torch.composer as C
+import kit_torch.composer as O
 from kit_torch.backend import TorchBackend
+from kit_torch.models import DeepParallel, ParallelLinear
 
 
 class _Scale(nn.Module):

@@ -16,14 +16,11 @@ tests pin the code-side consequences on main:
 
 import torch
 import torch.nn as nn
-
 from mlopt_core.cost import param_bytes_cost_for
-from kit_torch.composer import param_report
 from mlopt_orchestrator import Optimizer
 
-
 from kit_torch.backend import TorchBackend
-
+from kit_torch.composer import param_report
 
 
 def _randn(shape, g):

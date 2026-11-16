@@ -34,11 +34,9 @@ import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from mlopt_core.cost import _INVALID, _shape_of, flops_cost
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import Op, TensorType, Var
-
 from mlopt_orchestrator import Compositional, Optimizer
 
 from kit_torch.backend import TorchBackend
@@ -164,6 +162,7 @@ def test_extract_best_never_picks_illtyped_reshape():
     the ill-typed view would otherwise win on cost and crash eval."""
     torch.manual_seed(0)
     from mlopt_core.ir import IR
+
     from kit_torch.torch_bridge import ir_to_torch_module
 
     B, T, D = 16, 256, 768
@@ -200,6 +199,7 @@ def test_batched_rope_egraph_reshapes_welltyped():
     appear ill-typed."""
     torch.manual_seed(0)
     from mlopt_core.laws import DEFAULT, tags
+
     from kit_torch.torch_bridge import export_to_ir
 
     blk = RopeBlock().eval()

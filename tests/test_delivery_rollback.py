@@ -17,13 +17,13 @@ verified-failing graft reverts to the un-grafted composition.
 import pytest
 import torch
 import torch.nn as nn
-
 from mlopt_orchestrator import (
     Compositional,
     ContractionSearch,
     MorphismSearch,
     Optimizer,
 )
+
 from kit_torch.adapters import TorchSink, TorchSource
 from kit_torch.backend import TorchBackend
 from kit_torch.composer import TorchComposer

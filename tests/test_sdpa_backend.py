@@ -10,12 +10,13 @@ reduced-precision calls keep PyTorch's default backend choice.
 
 import torch
 import torch.nn.functional as F
+from torch.nn.attention import SDPBackend
+
 from kit_torch.torch_bridge import (
     _CORE_TORCH_BINDINGS,
     _sdpa_math_backend,
     _sdpa_torch,
 )
-from torch.nn.attention import SDPBackend
 
 torch.manual_seed(0)
 

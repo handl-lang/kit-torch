@@ -25,8 +25,8 @@ from mlopt_orchestrator import (
     Optimizer,
     ReifySpec,
 )
-from kit_torch.backend import TorchBackend
 
+from kit_torch.backend import TorchBackend
 from tests.test_diagram import (
     _Chain,
     _lift,

@@ -15,6 +15,7 @@ and outside an eval window the ambient default applies.
 
 import torch
 from mlopt_core.ir import Const, Op
+
 from kit_torch.torch_bridge import _IR_TO_TORCH, eval_term
 
 F64 = {"w": torch.ones(4, dtype=torch.float64)}

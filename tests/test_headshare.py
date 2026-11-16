@@ -12,7 +12,6 @@ recheck replays the byte-equality assumptions on new blocks.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from mlopt_core.cost import dag_cost, flops_cost
 from mlopt_core.egraph import EGraph
 from mlopt_core.egraph.types import ENode
@@ -25,11 +24,12 @@ from mlopt_core.laws.headshare import (
     headshare_keys_hold,
     share_duplicate_attention_heads,
 )
+from mlopt_orchestrator import SearchResult
 from mlopt_orchestrator.optimize import (
     Optimizer,
     _cache_replay,
 )
-from mlopt_orchestrator import SearchResult
+
 from kit_torch.backend import TorchBackend
 from kit_torch.torch_bridge import IRModule, export_to_ir
 

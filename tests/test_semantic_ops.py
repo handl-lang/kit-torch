@@ -25,18 +25,17 @@ from __future__ import annotations
 import pytest
 import torch
 import torch.nn.functional as F
-
 from mlopt_core.ir import Const, Op, TensorType, Var
+from mlopt_core.typing import _INVALID, _shape_of
+from mlopt_orchestrator import Compositional, Optimizer
+
+from kit_torch.backend import TorchBackend
 from kit_torch.torch_bridge import (
     _CORE_TORCH_BINDINGS,
     _IR_TO_TORCH,
     export_to_ir,
     ir_to_torch_module,
 )
-from mlopt_core.typing import _INVALID, _shape_of
-from mlopt_orchestrator import Compositional, Optimizer
-
-from kit_torch.backend import TorchBackend
 
 
 def _v(name: str, *shape: int) -> Var:
@@ -889,10 +888,6 @@ BINDING_CASES = [
     ids=[c[0] + "/" + str(i) for i, c in enumerate(BINDING_CASES)],
 )
 def test_binding_lowers_to_aten_semantics(op, tensors, attrs, expected):
-    if op == "inv":
-        # ``inv`` is bound by the trace carrier — kit_carriers is an
-        # optional lazy dep of kit_torch.
-        pytest.importorskip("kit_carriers")
     out = _eval_binding(op, tensors, attrs)
     want = expected(*tensors)
     if op == "empty":

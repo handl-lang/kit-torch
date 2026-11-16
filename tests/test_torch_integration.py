@@ -5,18 +5,20 @@ These cover the real-model path added for the polyhedral-RFC targets
 """
 
 import pytest
+
 pytestmark = pytest.mark.e2e  # boundary-purpose file: crosses an external engine boundary
 import torch
 from mlopt_core.cost import flops_cost
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import IR, Const, Op, Param, TensorType, Var, op_repr
-from kit_torch.models import MatrixChain, RMSNorm, SwiGLU
 from mlopt_core.laws import (
     CATEGORICAL,
     CATEGORICAL_RULES,
     SIMPLIFICATION,
     SIMPLIFICATION_RULES,
 )
+
+from kit_torch.models import MatrixChain, RMSNorm, SwiGLU
 from kit_torch.torch_bridge import (
     _SCALAR_OPERAND_OPS,
     _canon_aten_name,
@@ -249,10 +251,10 @@ def test_rmsnorm_roundtrip_and_optimize():
 #  Parallel projections: weight merging (bilinearity) — the composed win
 # ---------------------------------------------------------------------------
 
-from kit_torch.models import DeepParallel, ParallelLinear  # noqa: E402
 from mlopt_orchestrator import Optimizer
 
 from kit_torch.backend import TorchBackend
+from kit_torch.models import DeepParallel, ParallelLinear  # noqa: E402
 
 
 def _eqsat_best(model, x):
@@ -616,6 +618,7 @@ def test_attention_roundtrip():
 def test_qkv_fuse_produces_single_gemm():
     """qkv_fuse merges q/k/v into one GEMM + three chunk projections."""
     from mlopt_core.cost import launch_aware_cost
+
     from kit_torch.models import AttentionBlock
 
     torch.manual_seed(0)
@@ -656,8 +659,9 @@ def test_qkv_fuse_produces_single_gemm():
 
 def test_attr_metavariable_binds_shape():
     """Pattern attr value-as-string binds the node's concrete attr."""
-    from kit_torch.models import AttentionBlock
     from mlopt_core.laws import QKV_FUSE
+
+    from kit_torch.models import AttentionBlock
 
     torch.manual_seed(0)
     m = AttentionBlock(32, n_heads=2).eval()
@@ -686,6 +690,7 @@ def test_attr_metavariable_binds_shape():
 def test_normlinear_folds_channel_scale():
     """linear(x*rms*wn, W) -> rms * linear(x, W*wn): gain folds at compile time."""
     from mlopt_core.cost import launch_aware_cost
+
     from kit_torch.models import NormLinear
 
     torch.manual_seed(0)
@@ -725,6 +730,7 @@ def test_normlinear_folds_channel_scale():
 def test_gqa_asym_fuse():
     """qkv_fuse_asym: uneven head counts -> split with derived sizes."""
     from mlopt_core.cost import launch_aware_cost
+
     from kit_torch.models import GQAAttention
 
     torch.manual_seed(0)
@@ -762,8 +768,9 @@ def test_gqa_asym_fuse():
 
 def test_derive_hook_computes_sizes():
     """Rewrite.derive injects computed attrs into the instantiation."""
-    from kit_torch.models import GQAAttention
     from mlopt_core.laws import QKV_FUSE_ASYM
+
+    from kit_torch.models import GQAAttention
 
     torch.manual_seed(0)
     m = GQAAttention(64, n_heads=2, n_kv_heads=1).eval()
@@ -786,6 +793,7 @@ def test_derive_hook_computes_sizes():
 def test_transformer_block_stacks_fusions():
     """One saturation pass finds BOTH fusions in a full block."""
     from mlopt_core.cost import launch_aware_cost
+
     from kit_torch.models import TransformerBlock
 
     torch.manual_seed(0)
@@ -824,6 +832,7 @@ def test_transformer_block_stacks_fusions():
 def test_pairing_pass_five_way_parallel_block():
     """ParallelBlock: all 5 same-source projections fuse into ONE GEMM."""
     from mlopt_core.ir import op_repr
+
     from kit_torch.models import ParallelBlock
 
 
@@ -847,7 +856,6 @@ def test_pairing_pass_five_way_parallel_block():
 def test_pairing_subsumes_swiglu_rule():
     """The pairing pass alone fuses gate/up — no consumer pattern needed."""
     from mlopt_core.cost import dag_cost, launch_aware_cost
-    from kit_torch.models import SwiGLU
     from mlopt_core.laws import (
         CATEGORICAL_RULES,
         PARALLEL_MUL_FUSE,
@@ -857,6 +865,8 @@ def test_pairing_subsumes_swiglu_rule():
         SWIGLU_FUSE,
         pair_shared_input_linears,
     )
+
+    from kit_torch.models import SwiGLU
 
     subsumed = {
         SWIGLU_FUSE.name,
@@ -1062,6 +1072,7 @@ def test_conv2d_pairing_not_offered_for_grouped():
     import torch.nn as nn
     from mlopt_core.egraph import EGraph
     from mlopt_core.laws import pair_shared_input_convs
+
     from kit_torch.torch_bridge import export_to_ir
 
     class Grouped(nn.Module):
@@ -1107,6 +1118,7 @@ def test_sdpa_fold_masked_fill():
     sdpa(is_causal=True): the whole softmax-mask-attention chain
     collapses into one fused kernel call."""
     from mlopt_core.ir import op_repr
+
     from kit_torch.models import EagerAttention
 
 
@@ -1126,6 +1138,7 @@ def test_sdpa_fold_masked_fill():
 def test_sdpa_fold_additive_mask():
     """HF-style additive causal mask must fold to sdpa(attn_mask=...)."""
     from mlopt_core.ir import op_repr
+
     from kit_torch.models import AdditiveMaskAttention
 
 
@@ -1150,12 +1163,12 @@ def test_linear_recurrence_scan_structure():
     LTI recurrence h_t = A h_{t-1} + x_t reassociates so matrix powers
     A^k become shared subproducts and the critical path shortens.
     Verified exact in fp64."""
+    from mlopt_core import laws as R
     from mlopt_core.egraph import EGraph
     from mlopt_core.ir import IR, Op
+
     from kit_torch.models import LinearRecurrence
     from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
-
-    from mlopt_core import laws as R
 
     def opdepth(t, memo):
         if not isinstance(t, Op):
@@ -1206,12 +1219,12 @@ def test_affine_monoid_parallel_scan():
     rewriting cannot synthesise."""
     import math
 
+    from mlopt_core import laws as R
     from mlopt_core.egraph import EGraph
     from mlopt_core.ir import IR, Op
+
     from kit_torch.models import LinearRecurrence
     from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
-
-    from mlopt_core import laws as R
 
     def opdepth(t, memo):
         if not isinstance(t, Op):
@@ -1265,6 +1278,7 @@ def test_linear_attention_reassociation():
     """(Q K^T) V reassociates to Q (K^T V) — O(T^2 d) -> O(T d^2).
     Exact identity (verified in fp64); the cost model must pick it."""
     from mlopt_core.cost import roofline_cost
+
     from kit_torch.models import LinearAttention
 
 

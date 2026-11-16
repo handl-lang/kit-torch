@@ -17,13 +17,13 @@ import torch
 import torch.nn as nn
 from mlopt_core.failures import FailureClass, is_nonfinite
 from mlopt_core.ports import Meter
+
 from kit_torch.meter import (
     TorchMeter,
     _input_args,
     _input_device,
     _input_is_cuda,
 )
-
 
 # ---------------------------------------------------------------------------
 #  TimingResult — optional provenance with backward-compatible defaults

@@ -32,6 +32,7 @@ from mlopt_core.laws import (
     LINEAR_TO_MM_T,
 )
 from mlopt_core.laws.layout import _matmul_rules
+
 from kit_torch.torch_bridge import ir_to_torch_module
 
 torch.manual_seed(0)
@@ -93,8 +94,9 @@ def _opt_with_layout(m, x, cost_fn):
     so the e2e law tests drive the real pipeline directly:
     export → e-graph → saturate(union) → extract → lower.
     """
-    from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
     from mlopt_core.laws import all_rules
+
+    from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
 
     ir, source = export_to_ir(m, x)
     eg = EGraph()

@@ -22,6 +22,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 import torch.nn as nn
+
 from kit_torch.device import (
     DevicePlacementError,
     DevicePolicy,
@@ -337,6 +338,7 @@ def test_device_policy_runner_propagates_refusal():
 
 def test_torch_backend_device_policy_wraps_source():
     from mlopt_core.pipeline import Backend
+
     from kit_torch.backend import TorchBackend
 
     pol = _RecordingPolicy()

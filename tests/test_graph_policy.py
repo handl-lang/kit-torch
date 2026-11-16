@@ -17,6 +17,7 @@ from mlopt_core.game import Action, GameState
 from mlopt_core.ir import Op, TensorType, Var, op_repr
 from mlopt_core.laws import all_rules
 from mlopt_core.ports import Policy
+
 from kit_torch.adapters import TorchSource
 from kit_torch.graph_policy import GraphFeaturePolicy
 from kit_torch.learned_policy import LearnedPolicy, RuleValueNet

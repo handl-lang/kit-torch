@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 from mlopt_core.ir import op_repr, op_repr_dag
 from mlopt_orchestrator import MorphismLaw, MorphismSearch, Optimizer
+
 from kit_torch.adapters import TorchSink, TorchSource
 from kit_torch.backend import TorchBackend
 from kit_torch.composer import TorchComposer
@@ -729,13 +730,12 @@ def test_lazy_sibling_reexport_and_family_dispatch():
     """The lazy ``morphisms_kv`` re-export resolves and misses raise
     AttributeError; a ``family``-mode spec dispatches to the sibling
     reify (and declines honestly on a non-family match)."""
-    import pytest
-
     import mlopt_orchestrator.morphisms_kv as kv
+    import pytest
 
     assert M.KVLatentShare is kv.KVLatentShare
     with pytest.raises(AttributeError, match="has no attribute"):
-        getattr(M, "NoSuchLaw")
+        M.NoSuchLaw
 
     torch.manual_seed(0)
     g = _lift(_ChainStack(depth=2).eval().double(), _x())

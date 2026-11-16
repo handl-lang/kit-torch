@@ -9,9 +9,10 @@ delegates the equivalence gate to ``report.verify_module``.
 import pytest
 import torch
 import torch.nn as nn
-from kit_torch.adapters import TorchSink, TorchSource
 from mlopt_core.ir import IR, Op, Param, TensorType, Var
 from mlopt_core.ops import OpTable
+
+from kit_torch.adapters import TorchSink, TorchSource
 
 
 def _neg_ir() -> IR:

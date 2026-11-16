@@ -21,9 +21,10 @@ import random
 from collections import Counter
 from importlib import resources
 
-import kit_torch
 import pytest
 import torch
+
+import kit_torch
 from kit_torch.contraction_policy import (
     PAIR_DIM,
     SAMPLE_TEMP,

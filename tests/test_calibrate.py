@@ -7,6 +7,15 @@ from dataclasses import dataclass, field
 
 import pytest
 import torch
+from mlopt_core.cost import (
+    dag_cost,
+    depth_cost_for,
+    roofline_cost,
+    roofline_cost_for,
+)
+from mlopt_core.ir import Op, Param, TensorType, Var
+
+import kit_torch.calibrate as cal_mod
 from kit_torch.calibrate import (
     PROFILE_DIR_ENV,
     TargetProfile,
@@ -21,15 +30,6 @@ from kit_torch.calibrate import (
     save_profile,
     shape_bucket,
 )
-from mlopt_core.cost import (
-    dag_cost,
-    depth_cost_for,
-    roofline_cost,
-    roofline_cost_for,
-)
-from mlopt_core.ir import Op, Param, TensorType, Var
-import kit_torch.calibrate as cal_mod
-
 
 # The constants hardcoded in mlopt_core.cost — the dev RTX 2050 profile.
 RTX2050 = TargetProfile(

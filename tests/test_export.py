@@ -18,6 +18,7 @@ import pytest
 import torch
 import torch.nn as nn
 from mlopt_orchestrator import Compositional, Optimizer
+
 from kit_torch.backend import TorchBackend
 from kit_torch.export import (
     ARTIFACT_SCHEMA,
@@ -28,7 +29,6 @@ from kit_torch.export import (
     load_optimized,
     save_optimized,
 )
-
 from tests.test_compositional import MiniGPT
 
 

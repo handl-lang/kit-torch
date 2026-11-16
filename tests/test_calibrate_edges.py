@@ -35,6 +35,8 @@ from pathlib import Path
 
 import pytest
 import torch
+from mlopt_core.cost import roofline_cost_for
+from mlopt_core.ir import Op, Param, TensorType, Var
 
 import kit_torch.calibrate as C
 from kit_torch.calibrate import (
@@ -46,8 +48,6 @@ from kit_torch.calibrate import (
     profiles_dir,
     save_profile,
 )
-from mlopt_core.cost import roofline_cost_for
-from mlopt_core.ir import Op, Param, TensorType, Var
 
 TOY = TargetProfile(
     "toy", tflops=1.5, gbps=20.0, launch_us=4.0, device="cpu",

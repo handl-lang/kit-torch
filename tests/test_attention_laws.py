@@ -35,6 +35,7 @@ from mlopt_core.laws import (
 from mlopt_core.laws.attention import (
     _rope_cat,
 )
+
 from kit_torch.torch_bridge import ir_to_torch_module
 
 torch.manual_seed(0)
@@ -681,6 +682,7 @@ def test_attention_preset_through_optimizer():
             return torch.stack([out_r, out_i], dim=-1).flatten(3)
 
     from mlopt_orchestrator import Optimizer
+
     from kit_torch.backend import TorchBackend
 
     m = MiniRope().eval()
@@ -701,6 +703,7 @@ def test_exported_rope_term_matches_law_pattern():
     """The real exported MiniRope produces terms the laws reason
     about — the half-split cat form matches _rope_cat's structure."""
     import torch.nn as nn
+
     from kit_torch.torch_bridge import export_to_ir
 
     class SliceRope(nn.Module):

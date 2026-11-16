@@ -13,11 +13,10 @@ import time
 import pytest
 import torch
 import torch.nn as nn
-from kit_torch.models import DeepParallel, ParallelBlock, ParallelLinear
-
 from mlopt_orchestrator import Compositional, Optimizer
 
 from kit_torch.backend import TorchBackend
+from kit_torch.models import DeepParallel, ParallelBlock, ParallelLinear
 
 
 class MiniGPT(nn.Module):

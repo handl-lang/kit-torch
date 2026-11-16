@@ -16,11 +16,11 @@ unrolled-recurrence seed, it re-derives the unfolded equivalent of
 """
 
 import torch
-
-from mlopt_core import meta
 from mlopt_core import laws as R
+from mlopt_core import meta
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import IR, Const, Op, Param, TensorType, Var, op_repr
+
 from kit_torch.models import LinearRecurrence, SwiGLU
 from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
 

@@ -50,9 +50,9 @@ from mlopt_core.laws.factored import (
 )
 from mlopt_core.typing import has_var_leaf
 from mlopt_orchestrator.optimize import Optimizer
+
 from kit_torch.adapters import TorchSink
 from kit_torch.backend import TorchBackend
-
 from tests.test_morphism_kv import (
     _lift,
     _SharedKVStack,

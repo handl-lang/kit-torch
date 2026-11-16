@@ -32,7 +32,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import Op, Param, TensorType, Var
-
 from mlopt_orchestrator import Optimizer
 
 from kit_torch.backend import TorchBackend

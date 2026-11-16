@@ -48,7 +48,7 @@ from __future__ import annotations
 import torch
 from mlopt_core.cost import backend_cost, dag_cost, executor_cost_for
 from mlopt_core.egraph import EGraph, verify_certificate
-from mlopt_core.ir import Const, IR, Op, Param, TensorType, Var
+from mlopt_core.ir import IR, Const, Op, Param, TensorType, Var
 from mlopt_core.laws import (
     ALL_RULES,
     DIV_SQRT_TO_RSQRT,
@@ -59,6 +59,7 @@ from mlopt_core.laws import (
 )
 from mlopt_orchestrator import Optimizer
 from mlopt_orchestrator.optimize import _lower_extracted
+
 from kit_torch.adapters import TorchSink
 from kit_torch.backend import TorchBackend
 from kit_torch.torch_bridge import export_to_ir

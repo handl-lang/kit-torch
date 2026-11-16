@@ -7,15 +7,11 @@ import pytest
 import torch
 import torch.nn as nn
 from mlopt_core.ir import Const, Op, Param, TensorType, Var
+from mlopt_orchestrator import Compositional, Optimizer
 from mlopt_orchestrator.optimize import OptimizationResourceError
 
-
-from kit_torch.folds import _eval_const
-
-from mlopt_orchestrator import Compositional, Optimizer
-
-
 from kit_torch.backend import TorchBackend
+from kit_torch.folds import _eval_const
 
 
 class _MLP(nn.Module):
@@ -222,13 +218,11 @@ def test_compositional_no_blocks():
 def test_discover_alternatives_fires_pairing_and_lifts():
     """discover_alternatives runs the same pairing/lift pass — its
     re-saturation blocks execute when groups exist."""
-    import kit_torch.models as M
-    from kit_torch.adapters import TorchSource
+    from mlopt_core.pipeline import SearchResult
     from mlopt_orchestrator.optimize import discover_alternatives
 
-
-
-    from mlopt_core.pipeline import SearchResult
+    import kit_torch.models as M
+    from kit_torch.adapters import TorchSource
 
     torch.manual_seed(0)
     m = M.TransformerBlock(dim=64)
@@ -250,6 +244,7 @@ def test_verbose_verify_warning_arm(monkeypatch):
     sink's ``verify_module`` is the patched seam (plan 0004).
     """
     from mlopt_orchestrator import VerifyDeclinedError
+
     from kit_torch.report import VerifyReport
 
     def fake_verify(*a, **kw):

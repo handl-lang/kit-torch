@@ -51,6 +51,7 @@ from mlopt_core.ir import (
     term_to_data,
 )
 from mlopt_core.ops import OpTable
+
 from kit_torch.torch_bridge import (
     _IR_TO_TORCH,
     _aten_name,
@@ -965,6 +966,7 @@ class TestConvNetOps:
 
     def test_relu_inplace_binding_matches_relu(self):
         import torch
+
         from kit_torch.torch_bridge import _CORE_TORCH_BINDINGS as B
 
         assert "relu_" in B
@@ -975,6 +977,7 @@ class TestConvNetOps:
         """The export passes every attr positionally — a binding
         that defaults ``ceil_mode`` truncates the output shape."""
         import torch
+
         from kit_torch.torch_bridge import _CORE_TORCH_BINDINGS as B
 
         x = torch.randn(1, 1, 5, 5)
@@ -987,6 +990,7 @@ class TestConvNetOps:
 
     def test_upsample_bilinear2d_reads_positional_attrs(self):
         import torch
+
         from kit_torch.torch_bridge import _CORE_TORCH_BINDINGS as B
 
         x = torch.randn(1, 1, 4, 4)
@@ -1009,6 +1013,7 @@ class TestConvNetOps:
         """Scalar ``size``/``scale`` spellings — what the canonical
         attrs of a hand-minted term can carry — broadcast to pairs."""
         import torch
+
         from kit_torch.torch_bridge import _CORE_TORCH_BINDINGS as B
 
         x = torch.randn(1, 1, 4, 4)
@@ -1031,6 +1036,7 @@ class TestConvNetOps:
         bare int stays a valid square output size (``1`` pools to 1x1
         — BiRefNet's global-average branch)."""
         import torch
+
         from kit_torch.torch_bridge import _CORE_TORCH_BINDINGS as B
 
         x = torch.randn(1, 3, 8, 8)

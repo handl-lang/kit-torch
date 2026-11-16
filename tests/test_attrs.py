@@ -23,11 +23,11 @@ from __future__ import annotations
 import pytest
 import torch
 import torch.nn.functional as F
-
 from mlopt_core.attrs import (
     ATTR_SCHEMA,
 )
 from mlopt_core.ir import Op, TensorType, Var
+
 from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module
 
 _INT64_MAX = 2**63 - 1

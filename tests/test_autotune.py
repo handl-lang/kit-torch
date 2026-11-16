@@ -6,27 +6,26 @@ from __future__ import annotations
 import time
 
 import mlopt_orchestrator.autotune as at_mod
+import pytest
+
 import kit_torch.calibrate as cal_mod
 
-import pytest
 pytestmark = pytest.mark.e2e  # boundary-purpose file: crosses an external engine boundary
 import torch
 import torch.nn as nn
-from kit_torch.calibrate import TargetProfile, shape_bucket
 from mlopt_core.cost import fused_cost_for
 from mlopt_core.failures import FailureClass
 from mlopt_core.ir import Op, Param, TensorType, Var
 from mlopt_core.ports import TimingResult
+from mlopt_orchestrator import Optimizer
 from mlopt_orchestrator.autotune import CandidateUnavailableError
-
+from mlopt_orchestrator.optimize import Autotuned
 
 from kit_torch.adapters import TorchSink
-from kit_torch.report import verify_module
-from mlopt_orchestrator.optimize import Autotuned
-from mlopt_orchestrator import Optimizer
-
 from kit_torch.autotune import TORCH_BUILDERS
 from kit_torch.backend import TorchBackend
+from kit_torch.calibrate import TargetProfile, shape_bucket
+from kit_torch.report import verify_module
 
 
 class _MLP(nn.Module):

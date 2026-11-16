@@ -11,12 +11,10 @@ and verifying numerically before grafting.
 
 import torch
 import torch.nn as nn
-
 from mlopt_core.cost import param_bytes_cost_for
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import IR, Op, Param, TensorType, Var
 from mlopt_core.pipeline import SearchResult
-
 from mlopt_orchestrator import Compositional, Optimizer
 from mlopt_orchestrator.optimize import (
     _block_key,

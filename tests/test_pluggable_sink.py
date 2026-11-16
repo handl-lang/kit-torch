@@ -15,20 +15,18 @@ would not fit; that it fits is the conformance evidence.
 import numpy as np
 import torch
 import torch.nn as nn
-from kit_torch.adapters import TorchSource
 from mlopt_core.cost import backend_cost, launch_aware_cost
 from mlopt_core.egraph import EGraph
 from mlopt_core.ir import IR, Const, Op, Param, Var
+from mlopt_core.laws import all_rules
 from mlopt_core.ops import OpTable
+from mlopt_core.ports import ExecutorSpec, Sink
+from mlopt_orchestrator import Optimizer
 from mlopt_orchestrator.optimize import discover_alternatives
 
-
-from mlopt_core.ports import ExecutorSpec, Sink
-from kit_torch.report import VerifyReport
-from mlopt_core.laws import all_rules
-from mlopt_orchestrator import Optimizer
-
+from kit_torch.adapters import TorchSource
 from kit_torch.backend import TorchBackend
+from kit_torch.report import VerifyReport
 
 
 def _to_np(v):

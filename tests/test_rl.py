@@ -2,7 +2,6 @@
 
 import logging
 
-import kit_torch.rl as rl
 import torch
 from mlopt_core.features import DIMENSIONS, compute_features
 from mlopt_core.game import Action, GameState
@@ -11,6 +10,9 @@ from mlopt_core.laws import all_rules
 from mlopt_core.ports import Policy
 from mlopt_core.search_env import StepResult
 from mlopt_core.trajectories import RULE_VECTOR_LEN, rule_vector
+from torch.distributions import Categorical
+
+import kit_torch.rl as rl
 from kit_torch.rl import (
     EmaBaseline,
     PolicyNet,
@@ -20,7 +22,6 @@ from kit_torch.rl import (
     state_vector,
     train_reinforce,
 )
-from torch.distributions import Categorical
 
 
 def _v(name: str, *shape: int) -> Var:

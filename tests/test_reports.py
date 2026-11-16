@@ -11,6 +11,7 @@ import pytest
 import torch
 import torch.nn as nn
 from mlopt_orchestrator import Compositional, Optimizer
+
 from kit_torch.backend import TorchBackend
 from kit_torch.models import ParallelLinear
 from kit_torch.report import (

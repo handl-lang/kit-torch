@@ -136,8 +136,8 @@ _ATEN_TO_IR_OVERRIDES: dict[str, str] = {
     "_unsafe_index_put": "index_put",
     # torch.tile(t, dims) IS repeat — the same ``shape`` list attr.
     "tile": "repeat",
-    # torch.linalg.inv / torch.inverse → the ``inv`` op the trace
-    # carrier already binds (torch.linalg.inv) and types.
+    # torch.linalg.inv / torch.inverse → the ``inv`` op, bound
+    # natively below (the trace carrier binds the same op lazily).
     "linalg_inv": "inv",
     "inverse": "inv",
     "scaled_dot_product_attention": "sdpa",
@@ -1603,6 +1603,12 @@ _CORE_TORCH_BINDINGS: dict[str, Any] = {
         keepdim=bool(attr_of(kw, "keepdim", default=False)),
     ),
     "diag_sum": lambda t, *a, **kw: torch.trace(t),
+    # ``inv`` — torch.linalg.inv / torch.inverse canonicalize here
+    # (see _ATEN_TO_IR above).  The trace carrier binds the same op
+    # lazily; owning the binding here keeps the package self-sufficient
+    # for a core ATen op when kit_carriers is absent (the carrier's
+    # identical entry simply never gets consulted — dict hits win).
+    "inv": torch.linalg.inv,
     # --- elementwise ----------------------------------------------------
     "clamp": _clamp_torch,
     "clamp_min": lambda t, *a, **kw: torch.clamp_min(

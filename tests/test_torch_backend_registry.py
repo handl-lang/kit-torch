@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import kit_torch
 import pytest
 from mlopt_core import backends
 from mlopt_core.pipeline import Backend
 from mlopt_core.ports import Sink, Source
+
+import kit_torch
 
 
 @pytest.fixture

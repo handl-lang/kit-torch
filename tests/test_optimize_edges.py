@@ -7,20 +7,28 @@ parameter-diff report, and the compositional driver."""
 import pytest
 import torch
 import torch.nn as nn
-from kit_torch.adapters import TorchSource
 from mlopt_core import laws
 from mlopt_core.cost import flops_cost, launch_aware_cost
 from mlopt_core.ir import Const, Op, Param, TensorType, Var
-from mlopt_orchestrator.optimize import OptimizationResourceError, _looks_like_oom, discover_alternatives, ir_to_string, term_cost
-
-from kit_torch.folds import _eval_const, _is_causal_keep_mask, _specialize_causal
-from kit_torch.composer import _select_blocks, param_report
-from kit_torch.export import save_optimized_weights
-
 from mlopt_core.pipeline import SearchResult
 from mlopt_orchestrator import Compositional, Optimizer
+from mlopt_orchestrator.optimize import (
+    OptimizationResourceError,
+    _looks_like_oom,
+    discover_alternatives,
+    ir_to_string,
+    term_cost,
+)
 
+from kit_torch.adapters import TorchSource
 from kit_torch.backend import TorchBackend
+from kit_torch.composer import _select_blocks, param_report
+from kit_torch.export import save_optimized_weights
+from kit_torch.folds import (
+    _eval_const,
+    _is_causal_keep_mask,
+    _specialize_causal,
+)
 
 
 def _T(*shape):
