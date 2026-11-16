@@ -26,13 +26,13 @@ from typing import Any, NamedTuple, cast
 
 import torch
 from mlopt_core.attrs import attr_of, is_positional_attr
-from mlopt_core.ir import Op
 from mlopt_core.opmeta import REGISTRY, OpMeta, register_op_meta
 from mlopt_core.ops import (
     carrier_torch_bindings,
     register_ambient_bindings,
     register_core_bindings,
 )
+from mlopt_core.term import Op
 from mlopt_core.typing import register_shape_rule
 from mlopt_dtypes import canonical_name
 from mlopt_dtypes import get as _dtype_info
@@ -2414,7 +2414,7 @@ register_ambient_bindings(_IR_TO_TORCH)
 # the load-bearing one, since ``OpTable.full()`` seats its
 # ``torch_bindings`` on this same object, so a minted op's fold becomes
 # *extractable* where a fresh process would price it ``+inf``),
-# ``mlopt_core.ir._OP_REGISTRY`` (``op_def`` at mint time) and
+# ``mlopt_core.term._OP_REGISTRY`` (``op_def`` at mint time) and
 # ``mlopt_core.typing._SHAPE_RULES`` (``register_shape_rule``).
 # ``mlopt_core.opmeta`` needs no snapshot — its declaration seam
 # already ships ``register_op_meta`` / ``reset_declared``.
@@ -2442,7 +2442,7 @@ def ambient_registry_snapshot() -> AmbientRegistrySnapshot:
     :func:`restore_ambient_registry` it around each test — or use
     :func:`ambient_registry_scope` for a ``with`` block.
     """
-    from mlopt_core.ir import _OP_REGISTRY
+    from mlopt_core.term import _OP_REGISTRY
     from mlopt_core.typing import _SHAPE_RULES
 
     return AmbientRegistrySnapshot(
@@ -2458,7 +2458,7 @@ def restore_ambient_registry(snap: AmbientRegistrySnapshot) -> None:
     ``clear`` + ``update`` (not ``|=``) so names minted after the
     snapshot are dropped and pre-snapshot overrides are reinstated.
     """
-    from mlopt_core.ir import _OP_REGISTRY
+    from mlopt_core.term import _OP_REGISTRY
     from mlopt_core.typing import _SHAPE_RULES
 
     _IR_TO_TORCH.clear()

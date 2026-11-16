@@ -20,7 +20,7 @@ from typing import Any, cast
 
 import torch
 from mlopt_core.attrs import ATTR_SCHEMA
-from mlopt_core.ir import IR, Const, Op, Param, TensorType, Var
+from mlopt_core.term import IR, Const, Op, Param, TensorType, Var
 from mlopt_dtypes import canonical_name
 
 from kit_torch.torch_bindings import (

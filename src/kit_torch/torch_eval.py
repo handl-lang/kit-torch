@@ -16,9 +16,9 @@ from collections.abc import Callable, Mapping
 from typing import Any, cast
 
 import torch
-from mlopt_core.ir import IR, Const, Op, Param, Var
 from mlopt_core.opmeta import FOLD_OPS
 from mlopt_core.ops import OpTable
+from mlopt_core.term import IR, Const, Op, Param, Var
 
 from kit_torch import dtype_ctx
 
@@ -692,8 +692,8 @@ class IRModule(torch.nn.Module):
         with torch.matmul; elementwise weight-only chains (add/mul/neg/
         silu/sigmoid/square) are folded eagerly via _eval on _param_values.
         """
-        from mlopt_core.ir import Op as _Op
-        from mlopt_core.ir import Param as _Param
+        from mlopt_core.term import Op as _Op
+        from mlopt_core.term import Param as _Param
 
         # Memoize by identity of the CALLER's term object: the extracted
         # term may share a subtree object between several parents (e.g.
@@ -730,7 +730,7 @@ class IRModule(torch.nn.Module):
                             fused.detach().clone()
                         )
                         shape = tuple(int(d) for d in fused.shape)
-                        from mlopt_core.ir import TensorType
+                        from mlopt_core.term import TensorType
 
                         result = _Param(
                             name=fused_name, typ=TensorType(shape)
@@ -781,7 +781,7 @@ class IRModule(torch.nn.Module):
                             fused.detach().clone()
                         )
                         shape = tuple(int(d) for d in fused.shape)
-                        from mlopt_core.ir import TensorType
+                        from mlopt_core.term import TensorType
 
                         result = _Param(
                             name=fused_name,
@@ -793,8 +793,8 @@ class IRModule(torch.nn.Module):
         return term
 
     def _build_params(self) -> None:
-        from mlopt_core.ir import Op as _Op
-        from mlopt_core.ir import Param as _Param
+        from mlopt_core.term import Op as _Op
+        from mlopt_core.term import Param as _Param
 
         param_shapes: dict[str, tuple] = {}
 

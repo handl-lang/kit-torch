@@ -22,13 +22,13 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from mlopt_core.ir import IR
 from mlopt_core.ops import OpTable
 from mlopt_core.ports import (
     Executor,
     ExecutorSpec,
     OpRegistry,
 )
+from mlopt_core.term import IR
 
 from kit_torch.report import VerifyReport, verify_module
 from kit_torch.torch_bridge import export_to_ir, ir_to_torch_module

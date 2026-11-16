@@ -32,7 +32,7 @@ from collections.abc import Callable
 from typing import Any, Self
 
 import torch
-from mlopt_core.ir import Op
+from mlopt_core.term import Op
 
 __all__ = ["BatchedExecutorBase", "level_schedule", "slot_gathers"]
 

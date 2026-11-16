@@ -15,8 +15,8 @@ from __future__ import annotations
 from typing import Any
 
 import torch
-from mlopt_core.ir import Const, Op, Param, Var
 from mlopt_core.meta import register_concrete_eval
+from mlopt_core.term import Const, Op, Param, Var
 
 __all__ = ["TorchConcreteEval"]
 

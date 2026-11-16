@@ -45,20 +45,20 @@ from mlopt_core.attrs import (
     attr_of,
     is_positional_attr,
 )
-from mlopt_core.ir import (
-    IR,
-    Const,
-    Op,
-    Param,
-    TensorType,
-    Var,
-)
 from mlopt_core.opmeta import FOLD_OPS, REGISTRY
 from mlopt_core.ops import (
     OpTable,
     carrier_torch_bindings,
     register_ambient_bindings,
     register_core_bindings,
+)
+from mlopt_core.term import (
+    IR,
+    Const,
+    Op,
+    Param,
+    TensorType,
+    Var,
 )
 from mlopt_core.typing import register_shape_rule
 from mlopt_dtypes import canonical_name

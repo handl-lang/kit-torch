@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import torch
-from mlopt_core.ir import Op
+from mlopt_core.term import Op
 
 if TYPE_CHECKING:
     from mlopt_core.ports import OpRegistry

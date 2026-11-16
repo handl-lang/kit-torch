@@ -63,7 +63,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import torch
-from mlopt_core.ir import Const, Op
+from mlopt_core.term import Const, Op
 from mlopt_core.traversal import ops as term_ops
 
 from kit_torch.report import _rng_restore, _rng_snapshot, verify_equiv

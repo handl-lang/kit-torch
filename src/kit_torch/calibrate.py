@@ -316,7 +316,7 @@ def _measure_dispatch(
     already prices.  mlopt pieces are imported lazily so
     ``calibrate()`` stays importable where the adapter stack is not.
     """
-    from mlopt_core.ir import IR, Op, TensorType, Var
+    from mlopt_core.term import IR, Op, TensorType, Var
 
     from kit_torch.torch_bridge import ir_to_torch_module
 
@@ -363,7 +363,7 @@ def _measure_leaf_eval(
     convention.  The batched level's stack/index_select work is priced
     by the executor model, not folded in here.
     """
-    from mlopt_core.ir import IR, Op, TensorType, Var
+    from mlopt_core.term import IR, Op, TensorType, Var
 
     from kit_torch.torch_bridge import ir_to_torch_module
 
