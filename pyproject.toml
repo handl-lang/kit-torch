@@ -7,6 +7,7 @@ name = "kit-torch"
 version = "0.1.0"
 description = "PyTorch integration for the mlopt game — torch.export bridge, executors, model zoo, backend, calibrate/report. Split from handl-lang/graphopt packages/mlopt-torch (P3 Step D-1e)."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "mlopt-core",

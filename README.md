@@ -1,8 +1,6 @@
 # kit-torch
 
-The PyTorch integration for the mlopt game, split out of
-`handl-lang/graphopt` (`packages/mlopt-torch`) in P3 Step D-1e and
-renamed `mlopt-torch` → `kit-torch` / `mlopt_torch` → `kit_torch`.
+The PyTorch integration for the mlopt game.
 
 `kit_torch` carries the torch-facing half of the optimizer: the
 `torch.export` bridge (`torch_export`/`torch_bindings`/`torch_eval`/
@@ -20,7 +18,7 @@ undeclared edge (the carrier executor table degrades gracefully
 without it); `kit-cuda`, `kit-discovery`, and the game layer sit
 above it.
 
-## Install
+## Develop
 
 ```sh
 uv sync --group dev
@@ -40,9 +38,12 @@ root, so this repo carries them for its own dev env only.
 ## Verify
 
 ```sh
-.venv/bin/python -m pytest tests/ -q
-.venv/bin/ruff check src
-.venv/bin/ty check
-.venv/bin/lint-imports
-coverage run -m pytest tests/ -q && coverage report -m   # floor in pyproject
+uv run scripts/gate.py --coverage   # pytest → ruff → ty → lint-imports → coverage floor
 ```
+
+`scripts/gate.py` is a stdlib runner over the dev toolchain; `ci.sh`
+is the gate entry.
+
+## License
+
+MIT.
