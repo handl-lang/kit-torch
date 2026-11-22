@@ -1,0 +1,17 @@
+# bupha.toml — committed CI manifest for handl-lang/kit-torch.
+#
+# Runner is this repo's ci.sh. Merge the [[repos]] entry into the shared
+# watcher (~/.config/bupha/bupha.toml) or run: bupha watch --config bupha.toml
+
+[[repos]]
+name = "handl-lang/kit-torch"
+dir = "/home/luis/GitHub/handl-lang/kit-torch"
+branch = "refs/heads/main"
+  [repos.runner]
+  kind = "script"
+  cmd = "bash ci.sh"
+  cancel_running = true
+
+[status]
+kind = "github"
+context = "ci/bupha"
