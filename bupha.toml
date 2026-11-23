@@ -5,7 +5,7 @@
 
 [[repos]]
 name = "handl-lang/kit-torch"
-dir = "/home/luis/GitHub/handl-lang/kit-torch"
+dir = "~/GitHub/handl-lang/kit-torch"
 branch = "refs/heads/main"
   [repos.runner]
   kind = "script"
