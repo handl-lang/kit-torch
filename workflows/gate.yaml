@@ -16,7 +16,9 @@
 # `ruff format --check src || ruff format src tests` (ci.sh's
 # auto-format fallback, kept verbatim) → ty check → lint-imports →
 # coverage run pytest → coverage report -m (pyproject fail_under floor).
-# GATE_PYTEST_ARGS overrides the pytest arg string (default "tests/ -q").
+# Lanes (MLOPT_GATES_LANE, same as eqsat): dev (default) deselects
+# `slow`-marked tests via `-m "not slow"`; full runs everything.
+# GATE_PYTEST_ARGS overrides the pytest arg string verbatim.
 name: gate-kit-torch
 
 result:
@@ -36,6 +38,7 @@ capabilities:
     - GATE_REPO
     - GATE_RESULTS
     - GATE_PYTEST_ARGS
+    - MLOPT_GATES_LANE
     - GATE_TARGET_DIR
     - GATE_ENV_FILE
 
@@ -100,7 +103,18 @@ nodes:
           .venv/bin/ruff format --check src || .venv/bin/ruff format src tests;
           .venv/bin/ty check;
           .venv/bin/lint-imports;
-          .venv/bin/coverage run -m pytest ${GATE_PYTEST_ARGS:-tests/ -q};
+          LANE="${MLOPT_GATES_LANE:-dev}";
+          PYTEST_M=();
+          if [ "$LANE" = "dev" ]; then
+            PYTEST_M=(-m "not slow");
+          elif [ "$LANE" != "full" ]; then
+            echo "unknown MLOPT_GATES_LANE=$LANE (dev|full)" >&2; exit 2;
+          fi;
+          if [ -n "${GATE_PYTEST_ARGS:-}" ]; then
+            .venv/bin/coverage run -m pytest -q $GATE_PYTEST_ARGS;
+          else
+            .venv/bin/coverage run -m pytest -q "${PYTEST_M[@]}";
+          fi;
           .venv/bin/coverage report -m );
         rc=$?;
         if [ -n "$RESULTS" ]; then
