@@ -41,7 +41,7 @@ root, so this repo carries them for its own dev env only.
 uv run scripts/gate.py --coverage   # pytest → ruff → ty → lint-imports → coverage floor
 ```
 
-`scripts/gate.py` is a stdlib runner over the dev toolchain; `ci.sh`
+`scripts/gate.py` is a stdlib runner over the dev toolchain; `workflows/gate.yaml`
 is the gate entry.
 
 ## License
